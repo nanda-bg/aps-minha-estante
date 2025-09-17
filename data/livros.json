@@ -1,0 +1,62 @@
+[
+  {
+    "id": 2,
+    "titulo": "O Senhor dos Anéis: A Sociedade do Anel",
+    "autor": "J.R.R. Tolkien",
+    "genero": "Fantasia",
+    "ano": 1954,
+    "caminho_imagem": "images/o_senhor_dos_aneis.jpg",
+    "status_id": 3,
+    "data_leitura": "2025-09-16 16:20:41"
+  },
+  {
+    "id": 3,
+    "titulo": "1984",
+    "autor": "George Orwell",
+    "genero": "Distopia",
+    "ano": 1949,
+    "caminho_imagem": "images/1984.jpg",
+    "status_id": 1,
+    "data_leitura": null
+  },
+  {
+    "id": 4,
+    "titulo": "O Hobbit",
+    "autor": "J.R.R. Tolkien",
+    "genero": "Fantasia",
+    "ano": 1937,
+    "caminho_imagem": "images/o_hobbit.jpg",
+    "status_id": 2,
+    "data_leitura": null
+  },
+  {
+    "id": 5,
+    "titulo": "O Pequeno Príncipe",
+    "autor": "Antoine de Saint-Exupéry",
+    "genero": "Fábula",
+    "ano": 1943,
+    "caminho_imagem": "book-cover-5.jpg",
+    "status_id": 1,
+    "data_leitura": null
+  },
+  {
+    "id": 1758038193,
+    "titulo": "A Biblioteca da Meia-Noite",
+    "autor": "Matt Haig",
+    "genero": "Ficção Científica",
+    "ano": 2021,
+    "caminho_imagem": "book-cover-1758038193.jpg",
+    "status_id": 1,
+    "data_leitura": null
+  },
+  {
+    "id": 1758040305,
+    "titulo": "Percy Jackson e os Olimpianos - O Ladrão de Raios",
+    "autor": "Rick Riordan",
+    "genero": "Fantasia",
+    "ano": 2014,
+    "status_id": 3,
+    "caminho_imagem": "book-cover-1758040305.jpg",
+    "data_leitura": "2025-09-17T11:19:14.645698"
+  }
+]
