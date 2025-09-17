@@ -20,8 +20,7 @@ class Sidebar(ttk.Frame):
         pages = {
             "Estante": "EstantePage",
             "Adicionar Livro": "AddLivroPage",
-            "Estatísticas": "StatsPage",
-            "Configurações": "SettingsPage"
+            "Estatísticas": "StatsPage"
         }
 
         for text, page_name in pages.items():

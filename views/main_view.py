@@ -40,8 +40,7 @@ class MainView(tk.Tk):
         for PageClass, name in [(EstantePage, "EstantePage"), 
                                 (EditLivroPage, "EditLivroPage"),
                                 (AddLivroPage, "AddLivroPage"),
-                                (PlaceholderPage, "StatsPage"), 
-                                (PlaceholderPage, "SettingsPage")]:
+                                (PlaceholderPage, "StatsPage")]:
             if PageClass == PlaceholderPage:
                 page = PageClass(self.page_container, self.controller, page_name=name.replace("Page", ""))
             else:
@@ -62,7 +61,7 @@ class MainView(tk.Tk):
 
         page.tkraise()
 
-        if page_name in ["EstantePage", "StatsPage", "SettingsPage", "AddLivroPage"]:
+        if page_name in ["EstantePage", "StatsPage", "AddLivroPage"]:
             self.sidebar.highlight_button(page_name)
     
     def start(self):
