@@ -3,7 +3,7 @@ from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageTk
 import os
 from .base_page import BasePage
-from config import STYLE_CONFIG, IMAGES_DIR, STATUS_OPCOES
+from config import STATUS_OPCOES
 
 class AddLivroPage(BasePage):
     def __init__(self, parent, controller):
@@ -94,7 +94,7 @@ class AddLivroPage(BasePage):
         """ Abre uma janelinha para selecionar a imagem da capa do livro. """
         filepath = filedialog.askopenfilename(
             title="Selecione uma capa para o livro",
-            filetypes=[("Imagens", "*.png *.jpg *.jpeg *.bmp *.gif")]
+            filetypes=[("Imagens", "*.png *.jpg *.jpeg")]
         )
         if filepath:
             self.caminho_capa_selecionada = filepath

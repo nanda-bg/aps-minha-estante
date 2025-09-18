@@ -1,47 +1,62 @@
 class LivroController:
-    def __init__(self, model, view):
-        self.model = model
+    def __init__(self, models, view):
+        self.models = models
         self.view = view
 
     def show_page(self, page_name):
-        """Pede para a main view mostrar uma página específica."""
+        """ Mostra a página especificada. """
         self.view.show_page(page_name)
         
     def show_edit_page(self, livro_id):
-        """Pede para a main view mostrar a página de edição, passando o ID do livro."""
+        """ Mostra a página de edição para o livro especificado. """
         self.view.show_page("EditLivroPage", livro_id)
 
     def get_livro_by_id(self, livro_id):
-        """Pede a um livro específico do Model pelo ID."""
-        return self.model.get_livro_by_id(livro_id)
-
-    def atualizar_livro(self, livro_id, dados):
-        """Passa os dados atualizados para o Model salvar."""
-        self.model.atualizar_livro(livro_id, dados)    
-
-    def mudar_status(self, livro_id, novo_status):
-        """
-        Recebe a requisição da view para mudar um status,
-        chama o model e depois pede para a view se atualizar.
-        """
-        self.model.mudar_status(livro_id, novo_status)
-
-        self.view.pages["EstantePage"].filtrar_lista()
+        """ Retorna o livro com o ID especificado. """
+        return self.models['livro'].get_livro_by_id(livro_id)
 
     def get_livros(self, filtro="Todos"):
-        """Busca os livros do Model para a view."""
-        return self.model.get_livros_filtrados(filtro)
-
-    def get_all_livros(self):
-        """Busca todos os livros, sem filtro."""
-        return self.model.livros
+        """ Retorna a lista de livros que pode ser filtrada por status. """
+        todos_livros = self.models['livro'].get_all()
+        if filtro == "Todos":
+            return todos_livros
+        return [livro for livro in todos_livros if livro.status.nome == filtro]
 
     def adicionar_novo_livro(self, dados):
-        """Passa os dados de um novo livro para o Model e depois volta para a estante."""
-        self.model.adicionar_livro(dados)
-        self.show_page("EstantePage")    
+        """ Adiciona um novo livro com os dados fornecidos. """
+        autor = self.models['autor'].find_or_create_by_name(dados['autor'])
+        genero = self.models['genero'].find_or_create_by_name(dados['genero'])
+        status = self.models['status'].get_by_name(dados['status_nome'])
+        
+        dados_completos = dados.copy()
+        dados_completos['autor'] = autor
+        dados_completos['genero'] = genero
+        dados_completos['status'] = status
+        
+        self.models['livro'].adicionar_livro(dados_completos)
+        self.show_page("EstantePage")
+
+    def atualizar_livro(self, livro_id, dados):
+        """ Atualiza o livro com o ID especificado usando os dados fornecidos. """
+        autor = self.models['autor'].find_or_create_by_name(dados['autor'])
+        genero = self.models['genero'].find_or_create_by_name(dados['genero'])
+        status = self.models['status'].get_by_name(dados['status_nome'])
+        
+        dados_completos = dados.copy()
+        dados_completos['autor'] = autor
+        dados_completos['genero'] = genero
+        dados_completos['status'] = status
+        
+        self.models['livro'].atualizar_livro(livro_id, dados_completos)
+
+    def mudar_status(self, livro_id, novo_status_nome):
+        """ Muda o status do livro com o ID especificado. """
+        novo_status = self.models['status'].get_by_name(novo_status_nome)
+        if novo_status:
+            self.models['livro'].mudar_status(livro_id, novo_status)
+            self.view.pages["EstantePage"].filtrar_lista()
 
     def excluir_livro(self, livro_id):
-        """Pede ao Model para excluir um livro e depois retorna para a estante."""
-        self.model.excluir_livro(livro_id)
-        self.show_page("EstantePage")    
+        """ Exclui o livro com o ID especificado. """
+        self.models['livro'].excluir_livro(livro_id)
+        self.show_page("EstantePage")

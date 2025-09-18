@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 import os
 import shutil
 from .base_page import BasePage
-from config import STYLE_CONFIG, IMAGES_DIR, STATUS_OPCOES, STATUS_MAP
+from config import STYLE_CONFIG, IMAGES_DIR, STATUS_OPCOES
 
 class EditLivroPage(BasePage):
     def __init__(self, parent, controller):
@@ -21,24 +21,18 @@ class EditLivroPage(BasePage):
         self._create_widgets()
 
     def on_show(self, livro_id):
-        """
-        Chamado quando a página é exibida.
-        Carrega os dados do livro selecionado nos campos do formulário.
-        """
+        """ Carrega os dados do livro para edição. """
         self.livro_id = livro_id
         self.novo_caminho_capa = None
         livro = self.controller.get_livro_by_id(self.livro_id)
 
         if livro:
-            self.titulo_var.set(livro.get('titulo', ''))
-            self.autor_var.set(livro.get('autor', ''))
-            self.genero_var.set(livro.get('genero', ''))
-            self.ano_var.set(str(livro.get('ano', '')))
-            
-            status_id = livro.get('status_id', 1)
-            self.status_var.set(STATUS_MAP.get(status_id))
-            
-            self._carregar_imagem_capa(livro.get('caminho_imagem', ''))
+            self.titulo_var.set(livro.titulo)
+            self.autor_var.set(livro.autor.nome)
+            self.genero_var.set(livro.genero.nome)
+            self.ano_var.set(str(livro.ano))
+            self.status_var.set(livro.status.nome)
+            self._carregar_imagem_capa(livro.caminho_imagem)
 
     def _create_widgets(self):
         """ Cria os widgets da página de edição de livro. """
@@ -95,49 +89,36 @@ class EditLivroPage(BasePage):
         btn_excluir.pack(pady=(10, 0))
 
     def _carregar_imagem_capa(self, caminho_imagem):
-        """ Carrega e exibe a imagem da capa do livro. Se o caminho for None ou inválido, exibe um placeholder. """
+        """ Carrega e exibe a imagem da capa do livro. """
         try:
-            caminho_completo = os.path.join(IMAGES_DIR, os.path.basename(caminho_imagem))
+            caminho_completo = os.path.join(IMAGES_DIR, os.path.basename(caminho_imagem)) if not os.path.isabs(caminho_imagem) else caminho_imagem
             img = Image.open(caminho_completo).resize((150, 225), Image.Resampling.LANCZOS)
             photo = ImageTk.PhotoImage(img)
             self.label_capa.config(image=photo)
             self.label_capa.image = photo
         except Exception:
-            placeholder = tk.Canvas(self, width=150, height=225, bg="#cccccc", highlightthickness=0)
-            placeholder.create_text(75, 112, text="Capa\nIndisponível", fill="white", font=STYLE_CONFIG["FONT_NORMAL"], justify="center")
-            self.label_capa.config(image=placeholder)
-            
             img_placeholder = Image.new('RGB', (150, 225), color = '#cccccc')
             photo_placeholder = ImageTk.PhotoImage(img_placeholder)
             self.label_capa.config(image=photo_placeholder)
             self.label_capa.image = photo_placeholder
 
-
     def _selecionar_nova_capa(self):
-        """ Abre uma janelinha para selecionar uma nova imagem de capa para o livro. """
+        """ Abre uma janela para selecionar uma nova imagem de capa. """
         filepath = filedialog.askopenfilename(
             title="Selecione uma nova capa",
-            filetypes=[("Imagens", "*.png *.jpg *.jpeg *.bmp *.gif")]
+            filetypes=[("Imagens", "*.png *.jpg *.jpeg")]
         )
         if filepath:
             self.novo_caminho_capa = filepath
             self._carregar_imagem_capa(filepath)
 
     def _salvar_alteracoes(self):
-        """ Pede ao controller para salvar as alterações do livro. """
+        """ Valida os dados e salva as alterações no livro. """
         titulo = self.titulo_var.get().strip()
         autor = self.autor_var.get().strip()
         genero = self.genero_var.get().strip()
         ano = self.ano_var.get().strip()
         status_nome = self.status_var.get().strip()
-
-        dados_atualizados = {
-            'titulo': titulo,
-            'autor': autor,
-            'genero': genero,
-            'ano': ano,
-            'status_nome': status_nome
-        }
 
         if not all([titulo, autor, genero, ano]):
             messagebox.showerror("Erro de Validação", "Todos os campos são obrigatórios!")
@@ -146,11 +127,16 @@ class EditLivroPage(BasePage):
         if not ano.isdigit() or not len(ano) == 4:
             messagebox.showerror("Erro de Validação", "O ano deve ser um número com 4 dígitos.")
             return
+
+        dados_atualizados = {
+            'titulo': titulo, 'autor': autor, 'genero': genero,
+            'ano': int(ano), 'status_nome': status_nome
+        }
         
         if self.novo_caminho_capa:
             try:
                 livro_atual = self.controller.get_livro_by_id(self.livro_id)
-                caminho_antigo = livro_atual.get('caminho_imagem')
+                caminho_antigo = livro_atual.caminho_imagem
                 if caminho_antigo:
                     caminho_completo_antigo = os.path.join(IMAGES_DIR, caminho_antigo)
                     if os.path.exists(caminho_completo_antigo):
@@ -163,18 +149,17 @@ class EditLivroPage(BasePage):
             caminho_destino = os.path.join(IMAGES_DIR, novo_nome_arquivo)
 
             shutil.copy(self.novo_caminho_capa, caminho_destino)
-            
             dados_atualizados['caminho_imagem'] = novo_nome_arquivo
 
         self.controller.atualizar_livro(self.livro_id, dados_atualizados)
         self._voltar_para_estante()
 
     def _voltar_para_estante(self):
-        """ Volta para a página da estante. """
+        """ Volta para a página da estante sem salvar alterações. """
         self.controller.show_page("EstantePage")
 
     def _excluir_livro(self):
-        """ Pede confirmação e, se positivo, solicita a exclusão do livro. """
+        """ Exclui o livro após confirmação do usuário. """
         titulo_livro = self.titulo_var.get()
         confirmado = messagebox.askyesno(
             "Confirmar Exclusão",

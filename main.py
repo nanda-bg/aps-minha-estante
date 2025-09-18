@@ -1,15 +1,28 @@
 import os
 from models.livro_model import LivroModel
+from models.autor_model import AutorModel
+from models.genero_model import GeneroModel
+from models.status_model import StatusModel
 from views.main_view import MainView
 from controllers.livro_controller import LivroController
 
 class App:
     def __init__(self):
-        model = LivroModel()
+        autor_model = AutorModel()
+        genero_model = GeneroModel()
+        status_model = StatusModel()
+        livro_model = LivroModel(autor_model, genero_model, status_model)
+
+        models = {
+            "livro": livro_model,
+            "autor": autor_model,
+            "genero": genero_model,
+            "status": status_model
+        }
         
         view = MainView()
         
-        controller = LivroController(model, view)
+        controller = LivroController(models, view)
 
         view.set_controller(controller)
         
@@ -17,4 +30,5 @@ class App:
 
 if __name__ == "__main__":
     os.makedirs('data', exist_ok=True)
+    os.makedirs('images', exist_ok=True)
     app = App()

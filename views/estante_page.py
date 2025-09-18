@@ -3,7 +3,7 @@ from tkinter import ttk
 import os
 from PIL import Image, ImageTk
 from .base_page import BasePage
-from config import STYLE_CONFIG, IMAGES_DIR, STATUS_OPCOES, STATUS_MAP
+from config import STYLE_CONFIG, IMAGES_DIR, STATUS_OPCOES
 
 class EstantePage(BasePage):
     def __init__(self, parent, controller):
@@ -12,11 +12,11 @@ class EstantePage(BasePage):
         self._create_widgets()
 
     def on_show(self):
-        """Pede ao controller para atualizar a lista de livros exibida."""
+        """ Atualiza a lista de livros ao mostrar a página. """
         self.after(50, self.filtrar_lista)
 
     def update_display(self, livros_para_mostrar):
-        """Recebe uma lista de livros do controller e os exibe na tela."""
+        """ Atualiza a exibição dos livros na estante. """
         for widget in self.frame_lista_livros.winfo_children():
             widget.destroy()
 
@@ -25,8 +25,8 @@ class EstantePage(BasePage):
             self.frame_lista_livros.grid_columnconfigure(0, weight=1)
             filtro = self.filtro_status_var.get()
             mensagem = f"Nenhum livro encontrado com o status '{filtro}'."
-            if filtro == "Todos" and not self.controller.get_all_livros():
-                 mensagem = "Sua estante está vazia.\nAdicione seu primeiro livro!"
+            if filtro == "Todos" and not self.controller.get_livros():
+                  mensagem = "Sua estante está vazia.\nAdicione seu primeiro livro!"
             ttk.Label(self.frame_lista_livros, text=mensagem, font=STYLE_CONFIG["FONT_HEADING"], justify='center', anchor='center').grid(row=0, column=0, pady=50, sticky='nsew')
             return
             
@@ -39,21 +39,22 @@ class EstantePage(BasePage):
             self._criar_card_livro(livro, row, col)
             self.frame_lista_livros.grid_columnconfigure(col, weight=1)
     
-    def filtrar_lista(self, event=None):
-        """Pede ao controller os livros com o filtro atual e manda a tela se atualizar."""
+    def filtrar_lista(self):
+        """ Filtra a lista de livros com base no status selecionado. """
         filtro = self.filtro_status_var.get()
         livros = self.controller.get_livros(filtro)
         self.update_display(livros)
 
     def mudar_status(self, livro_id, novo_status):
-        """Avisa o controller que o status de um livro deve ser alterado."""
+        """ Muda o status do livro especificado. """
         self.controller.mudar_status(livro_id, novo_status)
     
     def _abrir_edicao(self, livro_id):
-        """Pede ao controller para mostrar a página de edição para um livro específico."""
+        """ Abre a página de edição para o livro especificado. """
         self.controller.show_edit_page(livro_id)
 
     def _create_widgets(self):
+        """ Cria os widgets da página da estante. """
         header_frame = ttk.Frame(self, style='Header.TFrame', padding=(20, 15))
         header_frame.pack(fill='x', side='top')
 
@@ -81,17 +82,17 @@ class EstantePage(BasePage):
         scrollbar.pack(side="right", fill="y")
 
     def _criar_card_livro(self, livro, row, col):
-        """ Cria um card para exibir as informações de um livro. """
+        """ Cria um card para exibir as informações do livro. """
         card = ttk.Frame(self.frame_lista_livros, style='Card.TFrame', padding=15)
         card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
         
-        callback = lambda event, b_id=livro.get('id'): self._abrir_edicao(b_id)
+        callback = lambda event, b_id=livro.id: self._abrir_edicao(b_id)
 
         card.bind("<Button-1>", callback)
 
         label_img = None
         try:
-            caminho_img = os.path.join(IMAGES_DIR, livro.get('caminho_imagem', '').split('/')[-1])
+            caminho_img = os.path.join(IMAGES_DIR, os.path.basename(livro.caminho_imagem))
             photo = ImageTk.PhotoImage(Image.open(caminho_img).resize((120, 180), Image.Resampling.LANCZOS))
             label_img = ttk.Label(card, image=photo, style='Card.TLabel')
             label_img.image = photo
@@ -105,28 +106,25 @@ class EstantePage(BasePage):
         if label_img:
             label_img.bind("<Button-1>", callback)
             
-        label_titulo = ttk.Label(card, text=livro['titulo'], style='Card.TLabel', font=STYLE_CONFIG["FONT_CARD_TITLE"], wraplength=180, justify='center')
+        label_titulo = ttk.Label(card, text=livro.titulo, style='Card.TLabel', font=STYLE_CONFIG["FONT_CARD_TITLE"], wraplength=180, justify='center')
         label_titulo.pack(fill='x', pady=5, expand=True)
         label_titulo.bind("<Button-1>", callback)
 
-        label_autor = ttk.Label(card, text=livro['autor'], style='Card.TLabel', font=STYLE_CONFIG["FONT_NORMAL"], justify='center')
+        label_autor = ttk.Label(card, text=livro.autor.nome, style='Card.TLabel', font=STYLE_CONFIG["FONT_NORMAL"], justify='center')
         label_autor.pack(fill='x', pady=(0, 15), expand=True)
         label_autor.bind("<Button-1>", callback)
 
         status_var = tk.StringVar()
         menu_status = ttk.Combobox(card, textvariable=status_var, values=STATUS_OPCOES, state="readonly", style="Card.TCombobox")
         
-        current_status_id = livro.get('status_id')
-        current_status_nome = STATUS_MAP.get(current_status_id)
-        if current_status_nome:
-            status_var.set(current_status_nome)
+        if livro.status:
+            status_var.set(livro.status.nome)
 
         menu_status.pack(fill='x', side='bottom')
-        menu_status.bind("<<ComboboxSelected>>", lambda event, b_id=livro.get('id'), var=status_var: self.mudar_status(b_id, var.get()))
-
+        menu_status.bind("<<ComboboxSelected>>", lambda event, b_id=livro.id, var=status_var: self.mudar_status(b_id, var.get()))
 
     def on_canvas_resize(self, event):
-        """Ajusta o layout dos cards quando o tamanho do canvas muda."""
+        """ Ajusta o layout dos cards quando a tela é redimensionada. """
         new_width = event.width
         self.canvas.itemconfig(self.frame_id, width=new_width)
         card_width_estimado = 240
