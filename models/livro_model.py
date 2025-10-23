@@ -135,3 +135,36 @@ class LivroModel:
 
         self.livros = [livro for livro in self.livros if livro.id != livro_id]
         self.save()
+
+    def get_livros_lidos_por_mes(self, ano):
+        """
+        Retorna uma lista com a contagem de livros lidos em cada mês
+        para um ano específico.
+        """
+        contagem_meses = [0] * 12
+        
+        for livro in self.livros:
+            if livro.status.id == 3 and livro.data_leitura:
+                try:
+                    data_leitura_obj = datetime.fromisoformat(livro.data_leitura)
+                    if data_leitura_obj.year == ano:
+                        mes_index = data_leitura_obj.month - 1
+                        contagem_meses[mes_index] += 1
+                except ValueError:
+                    continue
+        
+        return contagem_meses
+
+
+    def get_total_lidos_ano(self, ano):
+            """ Retorna o total de livros lidos em um ano específico. """
+            total = 0
+            for livro in self.livros:
+                if livro.status.id == 3 and livro.data_leitura:
+                    try:
+                        data_leitura_obj = datetime.fromisoformat(livro.data_leitura)
+                        if data_leitura_obj.year == ano:
+                            total += 1
+                    except ValueError:
+                        continue
+            return total

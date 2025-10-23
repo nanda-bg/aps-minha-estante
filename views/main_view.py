@@ -1,11 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 from config import STYLE_CONFIG
+from .stats_page import StatsPage
 from .sidebar import Sidebar
 from .estante_page import EstantePage
 from .placeholder_page import PlaceholderPage
 from .edit_livro_page import EditLivroPage
 from .add_livro_page import AddLivroPage
+
 
 class MainView(tk.Tk):
     def __init__(self):
@@ -40,7 +42,7 @@ class MainView(tk.Tk):
         for PageClass, name in [(EstantePage, "EstantePage"), 
                                 (EditLivroPage, "EditLivroPage"),
                                 (AddLivroPage, "AddLivroPage"),
-                                (PlaceholderPage, "StatsPage")]:
+                                (StatsPage, "StatsPage")]:
             if PageClass == PlaceholderPage:
                 page = PageClass(self.page_container, self.controller, page_name=name.replace("Page", ""))
             else:

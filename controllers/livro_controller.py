@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 class LivroController:
     def __init__(self, models, view):
         self.models = models
@@ -60,3 +63,24 @@ class LivroController:
         """ Exclui o livro com o ID especificado. """
         self.models['livro'].excluir_livro(livro_id)
         self.show_page("EstantePage")
+
+
+    def get_meta_anual(self):
+            """ Pede a meta anual ao StatsModel. """
+            return self.models['stats'].get_meta_anual()
+
+    def salvar_meta_anual(self, meta):
+        """ Salva uma nova meta anual. """
+        self.models['stats'].salvar_meta_anual(meta)
+
+    def get_dados_grafico_barras(self):
+        """ Pede os dados de livros lidos por mês para o ano atual. """
+        ano_atual = datetime.now().year
+        return self.models['livro'].get_livros_lidos_por_mes(ano_atual)
+
+    def get_dados_grafico_pizza(self):
+        """ Retorna o total de livros lidos e a meta para o ano atual. """
+        ano_atual = datetime.now().year
+        total_lidos = self.models['livro'].get_total_lidos_ano(ano_atual)
+        meta = self.models['stats'].get_meta_anual()
+        return total_lidos, meta
