@@ -60,13 +60,13 @@
     "data_leitura": "2025-09-17T11:19:14.645698"
   },
   {
-    "id": 1761596388,
-    "titulo": "Harry Potter e a Ordem da Fênix",
-    "autor_id": 9,
-    "genero_id": 1,
-    "ano": 1999,
+    "id": 1761598259,
+    "titulo": "The Boy in the Striped Pyjamas",
+    "autor_id": 11,
+    "genero_id": 6,
+    "ano": 2006,
     "status_id": 1,
-    "caminho_imagem": "book-cover-1761596388.jpg",
+    "caminho_imagem": "book-cover-1761598259.jpg",
     "data_leitura": null
   }
 ]
