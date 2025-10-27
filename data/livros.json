@@ -58,5 +58,15 @@
     "status_id": 3,
     "caminho_imagem": "book-cover-1758040305.jpg",
     "data_leitura": "2025-09-17T11:19:14.645698"
+  },
+  {
+    "id": 1761596388,
+    "titulo": "Harry Potter e a Ordem da Fênix",
+    "autor_id": 9,
+    "genero_id": 1,
+    "ano": 1999,
+    "status_id": 1,
+    "caminho_imagem": "book-cover-1761596388.jpg",
+    "data_leitura": null
   }
 ]

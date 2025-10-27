@@ -76,6 +76,25 @@ class AddLivroPage(BasePage):
         btn_cancelar = ttk.Button(frame_botoes, text="Cancelar", command=lambda: self.controller.show_page("EstantePage"))
         btn_cancelar.pack(side='right')
 
+        btn_buscar_capa_api = ttk.Button(frame_capa, text="Buscar capa via API", command=self._buscar_capa_api)
+        btn_buscar_capa_api.pack(fill='x', pady=(5, 0))
+
+    def _buscar_capa_api(self):
+        titulo = self.titulo_var.get().strip()
+        if not titulo:
+            messagebox.showerror("Erro", "Digite o título do livro antes de buscar a capa.")
+            return
+
+        # Chama o método do controller/model para buscar e salvar a capa
+        nome_imagem = self.controller.buscar_e_salvar_capa(titulo)
+        if nome_imagem:
+            caminho_imagem = os.path.join("images", nome_imagem)
+            self.caminho_capa_selecionada = caminho_imagem
+            self._carregar_imagem_capa(caminho_imagem)
+            messagebox.showinfo("Sucesso", "Capa encontrada e adicionada!")
+        else:
+            messagebox.showwarning("Aviso", "Não foi possível encontrar a capa via API. Adicione manualmente se desejar.")
+
     def _carregar_imagem_capa(self, caminho_imagem):
         """ Carrega e exibe a imagem da capa do livro. Se o caminho for None ou inválido, exibe um placeholder. """
         try:

@@ -5,6 +5,7 @@ import shutil
 from datetime import datetime
 from config import LIVROS_JSON_PATH, IMAGES_DIR
 from entities.livro import Livro
+import requests
 
 class LivroModel:
     def __init__(self, autor_model, genero_model, status_model):
@@ -56,11 +57,50 @@ class LivroModel:
                 return livro
         return None
 
+    def buscar_capa_online(self, titulo):
+        """Busca a URL da capa do livro pelo título usando a API do Open Library."""
+        url = f"https://openlibrary.org/search.json?title={titulo}"
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                if data['docs']:
+                    doc = data['docs'][0]
+                    if 'cover_i' in doc:
+                        cover_id = doc['cover_i']
+                        return f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
+            return None
+        except Exception as e:
+            print(f"Erro ao buscar capa online: {e}")
+            return None
+    def buscar_e_salvar_capa(self, titulo):
+        url_capa = self.buscar_capa_online(titulo)
+        if url_capa:
+            try:
+                novo_id = int(time.time())
+                os.makedirs(IMAGES_DIR, exist_ok=True)
+                response = requests.get(url_capa, stream=True)
+                if response.status_code == 200:
+                    extensao = ".jpg"
+                    nome_final_imagem = f"book-cover-{novo_id}{extensao}"
+                    caminho_destino = os.path.join(IMAGES_DIR, nome_final_imagem)
+                    with open(caminho_destino, 'wb') as out_file:
+                        shutil.copyfileobj(response.raw, out_file)
+                    return nome_final_imagem
+            except Exception as e:
+                print(f"Erro ao baixar capa: {e}")
+        return None
+
     def adicionar_livro(self, dados):
-        """ Adiciona um novo livro com os dados fornecidos. """
         novo_id = int(time.time())
-        
         caminho_imagem_final = ""
+
+        # Busca a capa online primeiro (se desejar, pode remover se já faz isso na interface)
+        nome_imagem = self.buscar_e_salvar_capa(dados['titulo'])
+        if nome_imagem:
+            caminho_imagem_final = nome_imagem
+
+        # Se o usuário enviou uma imagem manual, ela substitui a online
         caminho_temporario = dados.get('caminho_imagem_temporario')
         if caminho_temporario:
             _, extensao = os.path.splitext(caminho_temporario)

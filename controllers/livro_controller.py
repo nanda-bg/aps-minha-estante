@@ -36,6 +36,9 @@ class LivroController:
         self.models['livro'].adicionar_livro(dados_completos)
         self.show_page("EstantePage")
 
+    def buscar_e_salvar_capa(self, titulo):
+        return self.models['livro'].buscar_e_salvar_capa(titulo)
+
     def atualizar_livro(self, livro_id, dados):
         """ Atualiza o livro com o ID especificado usando os dados fornecidos. """
         autor = self.models['autor'].find_or_create_by_name(dados['autor'])
