@@ -3,6 +3,7 @@ from models.livro_model import LivroModel
 from models.autor_model import AutorModel
 from models.genero_model import GeneroModel
 from models.status_model import StatusModel
+from models.stats_model import StatsModel
 from views.main_view import MainView
 from controllers.livro_controller import LivroController
 
@@ -12,12 +13,14 @@ class App:
         genero_model = GeneroModel()
         status_model = StatusModel()
         livro_model = LivroModel(autor_model, genero_model, status_model)
+        stats_model = StatsModel()
 
         models = {
             "livro": livro_model,
             "autor": autor_model,
             "genero": genero_model,
-            "status": status_model
+            "status": status_model,
+            "stats": stats_model
         }
         
         view = MainView()
