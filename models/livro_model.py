@@ -53,7 +53,7 @@ class LivroModel:
     def get_livro_by_id(self, livro_id):
         """ Retorna o livro com o ID especificado, ou None se não encontrado. """
         for livro in self.livros:
-            if livro.id == livro_id:
+            if livro.get_id() == livro_id:
                 return livro
         return None
 
@@ -95,12 +95,10 @@ class LivroModel:
         novo_id = int(time.time())
         caminho_imagem_final = ""
 
-        # Busca a capa online primeiro (se desejar, pode remover se já faz isso na interface)
         nome_imagem = self.buscar_e_salvar_capa(dados['titulo'])
         if nome_imagem:
             caminho_imagem_final = nome_imagem
 
-        # Se o usuário enviou uma imagem manual, ela substitui a online
         caminho_temporario = dados.get('caminho_imagem_temporario')
         if caminho_temporario:
             _, extensao = os.path.splitext(caminho_temporario)
@@ -108,8 +106,7 @@ class LivroModel:
             caminho_destino = os.path.join(IMAGES_DIR, nome_final_imagem)
             shutil.copy(caminho_temporario, caminho_destino)
             caminho_imagem_final = nome_final_imagem
-
-        data_leitura = datetime.now().isoformat() if dados['status'].id == 3 else None
+        data_leitura = datetime.now().isoformat() if (hasattr(dados.get('status'), 'get_id') and dados['status'].get_id() == 3) else None
 
         novo_livro = Livro(
             id=novo_id,
@@ -130,20 +127,20 @@ class LivroModel:
         if not livro:
             return
 
-        livro.titulo = dados_atualizados.get('titulo', livro.titulo)
-        livro.ano = dados_atualizados.get('ano', livro.ano)
-        livro.autor = dados_atualizados.get('autor', livro.autor)
-        livro.genero = dados_atualizados.get('genero', livro.genero)
+        livro.set_titulo(dados_atualizados.get('titulo', livro.get_titulo()))
+        livro.set_ano(dados_atualizados.get('ano', livro.get_ano()))
+        livro.set_autor(dados_atualizados.get('autor', livro.get_autor()))
+        livro.set_genero(dados_atualizados.get('genero', livro.get_genero()))
         
         if 'status' in dados_atualizados:
-            livro.status = dados_atualizados['status']
-            if livro.status.id == 3:
-                livro.data_leitura = datetime.now().isoformat()
+            livro.set_status(dados_atualizados['status'])
+            if livro.get_status() and livro.get_status().get_id() == 3:
+                livro.set_data_leitura(datetime.now().isoformat())
             else:
-                livro.data_leitura = None
+                livro.set_data_leitura(None)
 
         if 'caminho_imagem' in dados_atualizados:
-            livro.caminho_imagem = dados_atualizados['caminho_imagem']
+            livro.set_caminho_imagem(dados_atualizados['caminho_imagem'])
             
         self.save()
 
@@ -151,11 +148,11 @@ class LivroModel:
         """ Muda o status do livro com o ID especificado. """
         livro = self.get_livro_by_id(livro_id)
         if livro:
-            livro.status = novo_status
-            if novo_status.id == 3:
-                livro.data_leitura = datetime.now().isoformat()
+            livro.set_status(novo_status)
+            if hasattr(novo_status, 'get_id') and novo_status.get_id() == 3:
+                livro.set_data_leitura(datetime.now().isoformat())
             else:
-                livro.data_leitura = None
+                livro.set_data_leitura(None)
             self.save()
 
     def excluir_livro(self, livro_id):
@@ -164,7 +161,7 @@ class LivroModel:
         if not livro_para_excluir:
             return
 
-        caminho_imagem = livro_para_excluir.caminho_imagem
+        caminho_imagem = livro_para_excluir.get_caminho_imagem()
         if caminho_imagem:
             try:
                 caminho_completo = os.path.join(IMAGES_DIR, caminho_imagem)
@@ -173,7 +170,7 @@ class LivroModel:
             except Exception as e:
                 print(f"Erro ao excluir a imagem da capa: {e}")
 
-        self.livros = [livro for livro in self.livros if livro.id != livro_id]
+        self.livros = [livro for livro in self.livros if livro.get_id() != livro_id]
         self.save()
 
     def get_livros_lidos_por_mes(self, ano):
@@ -184,9 +181,9 @@ class LivroModel:
         contagem_meses = [0] * 12
         
         for livro in self.livros:
-            if livro.status.id == 3 and livro.data_leitura:
+            if livro.get_status() and livro.get_status().get_id() == 3 and livro.get_data_leitura():
                 try:
-                    data_leitura_obj = datetime.fromisoformat(livro.data_leitura)
+                    data_leitura_obj = datetime.fromisoformat(livro.get_data_leitura())
                     if data_leitura_obj.year == ano:
                         mes_index = data_leitura_obj.month - 1
                         contagem_meses[mes_index] += 1
@@ -200,9 +197,9 @@ class LivroModel:
             """ Retorna o total de livros lidos em um ano específico. """
             total = 0
             for livro in self.livros:
-                if livro.status.id == 3 and livro.data_leitura:
+                if livro.get_status() and livro.get_status().get_id() == 3 and livro.get_data_leitura():
                     try:
-                        data_leitura_obj = datetime.fromisoformat(livro.data_leitura)
+                        data_leitura_obj = datetime.fromisoformat(livro.get_data_leitura())
                         if data_leitura_obj.year == ano:
                             total += 1
                     except ValueError:

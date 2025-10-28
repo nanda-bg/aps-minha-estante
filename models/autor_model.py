@@ -10,7 +10,7 @@ class AutorModel(BaseModel):
         """ Procura um autor pelo nome. Se não existir, cria um novo autor. """
         name = name.strip()
         for autor in self.data:
-            if autor.nome.lower() == name.lower():
+            if autor.get_nome().lower() == name.lower():
                 return autor
         
         new_id = self._get_next_id()

@@ -27,12 +27,12 @@ class EditLivroPage(BasePage):
         livro = self.controller.get_livro_by_id(self.livro_id)
 
         if livro:
-            self.titulo_var.set(livro.titulo)
-            self.autor_var.set(livro.autor.nome)
-            self.genero_var.set(livro.genero.nome)
-            self.ano_var.set(str(livro.ano))
-            self.status_var.set(livro.status.nome)
-            self._carregar_imagem_capa(livro.caminho_imagem)
+            self.titulo_var.set(livro.get_titulo())
+            self.autor_var.set(livro.get_autor().get_nome())
+            self.genero_var.set(livro.get_genero().get_nome())
+            self.ano_var.set(str(livro.get_ano()))
+            self.status_var.set(livro.get_status().get_nome() if livro.get_status() else "")
+            self._carregar_imagem_capa(livro.get_caminho_imagem())
 
     def _create_widgets(self):
         """ Cria os widgets da página de edição de livro. """
@@ -136,7 +136,7 @@ class EditLivroPage(BasePage):
         if self.novo_caminho_capa:
             try:
                 livro_atual = self.controller.get_livro_by_id(self.livro_id)
-                caminho_antigo = livro_atual.caminho_imagem
+                caminho_antigo = livro_atual.get_caminho_imagem()
                 if caminho_antigo:
                     caminho_completo_antigo = os.path.join(IMAGES_DIR, caminho_antigo)
                     if os.path.exists(caminho_completo_antigo):

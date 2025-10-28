@@ -5,9 +5,9 @@
     "autor_id": 1,
     "genero_id": 1,
     "ano": 1954,
-    "status_id": 2,
+    "status_id": 3,
     "caminho_imagem": "book-cover-2.jpg",
-    "data_leitura": null
+    "data_leitura": "2025-10-27T20:56:13.262810"
   },
   {
     "id": 3,
@@ -61,12 +61,22 @@
   },
   {
     "id": 1761598259,
-    "titulo": "The Boy in the Striped Pyjamas",
+    "titulo": "O menino do pijama listrado",
     "autor_id": 11,
     "genero_id": 6,
     "ano": 2006,
     "status_id": 1,
     "caminho_imagem": "book-cover-1761598259.jpg",
     "data_leitura": null
+  },
+  {
+    "id": 1761609521,
+    "titulo": "Love Letters to the Dead",
+    "autor_id": 12,
+    "genero_id": 7,
+    "ano": 2014,
+    "status_id": 3,
+    "caminho_imagem": "book-cover-1761609521.jpg",
+    "data_leitura": "2025-10-27T20:58:46.615154"
   }
 ]

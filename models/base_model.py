@@ -29,7 +29,7 @@ class BaseModel:
     def get_by_id(self, item_id):
         """ Retorna o item com o ID especificado, ou None se não encontrado. """
         for item in self.data:
-            if item.id == item_id:
+            if item.get_id() == item_id:
                 return item
         return None
 
@@ -37,4 +37,4 @@ class BaseModel:
         """ Retorna o próximo ID disponível. """
         if not self.data:
             return 1
-        return max(item.id for item in self.data) + 1
+        return max(item.get_id() for item in self.data) + 1

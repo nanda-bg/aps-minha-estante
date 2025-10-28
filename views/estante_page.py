@@ -86,13 +86,13 @@ class EstantePage(BasePage):
         card = ttk.Frame(self.frame_lista_livros, style='Card.TFrame', padding=15)
         card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
         
-        callback = lambda event, b_id=livro.id: self._abrir_edicao(b_id)
+        callback = lambda event, b_id=livro.get_id(): self._abrir_edicao(b_id)
 
         card.bind("<Button-1>", callback)
 
         label_img = None
         try:
-            caminho_img = os.path.join(IMAGES_DIR, os.path.basename(livro.caminho_imagem))
+            caminho_img = os.path.join(IMAGES_DIR, os.path.basename(livro.get_caminho_imagem()))
             photo = ImageTk.PhotoImage(Image.open(caminho_img).resize((120, 180), Image.Resampling.LANCZOS))
             label_img = ttk.Label(card, image=photo, style='Card.TLabel')
             label_img.image = photo
@@ -106,22 +106,22 @@ class EstantePage(BasePage):
         if label_img:
             label_img.bind("<Button-1>", callback)
             
-        label_titulo = ttk.Label(card, text=livro.titulo, style='Card.TLabel', font=STYLE_CONFIG["FONT_CARD_TITLE"], wraplength=180, justify='center')
+        label_titulo = ttk.Label(card, text=livro.get_titulo(), style='Card.TLabel', font=STYLE_CONFIG["FONT_CARD_TITLE"], wraplength=180, justify='center')
         label_titulo.pack(fill='x', pady=5, expand=True)
         label_titulo.bind("<Button-1>", callback)
 
-        label_autor = ttk.Label(card, text=livro.autor.nome, style='Card.TLabel', font=STYLE_CONFIG["FONT_NORMAL"], justify='center')
+        label_autor = ttk.Label(card, text=livro.get_autor().get_nome(), style='Card.TLabel', font=STYLE_CONFIG["FONT_NORMAL"], justify='center')
         label_autor.pack(fill='x', pady=(0, 15), expand=True)
         label_autor.bind("<Button-1>", callback)
 
         status_var = tk.StringVar()
         menu_status = ttk.Combobox(card, textvariable=status_var, values=STATUS_OPCOES, state="readonly", style="Card.TCombobox")
         
-        if livro.status:
-            status_var.set(livro.status.nome)
+        if livro.get_status():
+            status_var.set(livro.get_status().get_nome())
 
         menu_status.pack(fill='x', side='bottom')
-        menu_status.bind("<<ComboboxSelected>>", lambda event, b_id=livro.id, var=status_var: self.mudar_status(b_id, var.get()))
+        menu_status.bind("<<ComboboxSelected>>", lambda event, b_id=livro.get_id(), var=status_var: self.mudar_status(b_id, var.get()))
 
     def on_canvas_resize(self, event):
         """ Ajusta o layout dos cards quando a tela é redimensionada. """

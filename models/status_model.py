@@ -17,6 +17,6 @@ class StatusModel(BaseModel):
     def get_by_name(self, name):
         """ Retorna o status com o nome especificado, ou None se não encontrado. """
         for status in self.data:
-            if status.nome.lower() == name.lower():
+            if status.get_nome().lower() == name.lower():
                 return status
         return None

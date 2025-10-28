@@ -10,7 +10,7 @@ class GeneroModel(BaseModel):
         """ Procura um gênero pelo nome. Se não existir, cria um novo gênero. """
         name = name.strip()
         for genero in self.data:
-            if genero.nome.lower() == name.lower():
+            if genero.get_nome().lower() == name.lower():
                 return genero
         
         new_id = self._get_next_id()

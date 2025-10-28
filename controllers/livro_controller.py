@@ -23,7 +23,7 @@ class LivroController:
         todos_livros = self.models['livro'].get_all()
         if filtro == "Todos":
             return todos_livros
-        return [livro for livro in todos_livros if livro.status.nome == filtro]
+        return [livro for livro in todos_livros if livro.get_status() and livro.get_status().get_nome() == filtro]
 
     def adicionar_novo_livro(self, dados):
         """ Adiciona um novo livro com os dados fornecidos. """
