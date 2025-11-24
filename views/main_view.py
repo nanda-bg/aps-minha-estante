@@ -7,6 +7,7 @@ from .estante_page import EstantePage
 from .placeholder_page import PlaceholderPage
 from .edit_livro_page import EditLivroPage
 from .add_livro_page import AddLivroPage
+from .anotacoes_page import AnotacoesPage
 
 
 class MainView(tk.Tk):
@@ -42,6 +43,7 @@ class MainView(tk.Tk):
         for PageClass, name in [(EstantePage, "EstantePage"), 
                                 (EditLivroPage, "EditLivroPage"),
                                 (AddLivroPage, "AddLivroPage"),
+                                (AnotacoesPage, "AnotacoesPage"),
                                 (StatsPage, "StatsPage")]:
             if PageClass == PlaceholderPage:
                 page = PageClass(self.page_container, self.controller, page_name=name.replace("Page", ""))

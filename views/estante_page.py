@@ -49,9 +49,20 @@ class EstantePage(BasePage):
         """ Muda o status do livro especificado. """
         self.controller.mudar_status(livro_id, novo_status)
     
-    def _abrir_edicao(self, livro_id):
+    def _abrir_edicao(self, livro_id, event=None):
         """ Abre a página de edição para o livro especificado. """
+        if event:
+            event.stopPropagation()
         self.controller.show_edit_page(livro_id)
+    
+    def _abrir_anotacoes(self, livro_id, event=None):
+        """ Abre a página de anotações para o livro especificado. """
+        if event:
+            event.stopPropagation()
+        
+        livro = self.controller.get_livro_by_id(livro_id)
+        if livro and livro.get_status() and livro.get_status().get_id() == 3:
+            self.controller.show_anotacoes_page(livro_id)
 
     def _create_widgets(self):
         """ Cria os widgets da página da estante. """
@@ -86,9 +97,23 @@ class EstantePage(BasePage):
         card = ttk.Frame(self.frame_lista_livros, style='Card.TFrame', padding=15)
         card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
         
-        callback = lambda event, b_id=livro.get_id(): self._abrir_edicao(b_id)
-
-        card.bind("<Button-1>", callback)
+        livro_eh_lido = livro.get_status() and livro.get_status().get_id() == 3
+        if livro_eh_lido:
+            callback_anotacoes = lambda event, b_id=livro.get_id(): self._abrir_anotacoes(b_id)
+            card.bind("<Button-1>", callback_anotacoes)
+            card.config(cursor="hand2")
+        else:
+            card.config(cursor="arrow")
+        
+        frame_top = ttk.Frame(card, style='Card.TFrame')
+        frame_top.pack(fill='x', anchor='ne')
+        
+        btn_editar = tk.Button(frame_top, text="✏️", font=("Georgia", 12), 
+                              bd=0, bg=STYLE_CONFIG["COMPONENT_BG"], fg=STYLE_CONFIG["ACCENT_COLOR"],
+                              activebackground=STYLE_CONFIG["COMPONENT_BG"],
+                              cursor="hand2",
+                              command=lambda b_id=livro.get_id(): self._abrir_edicao(b_id))
+        btn_editar.pack(side='right')
 
         label_img = None
         try:
@@ -101,18 +126,30 @@ class EstantePage(BasePage):
             placeholder = tk.Canvas(card, width=120, height=180, bg="#cccccc", highlightthickness=0)
             placeholder.create_text(60, 90, text="Capa\nIndisponível", fill="white", font=STYLE_CONFIG["FONT_NORMAL"], justify="center")
             placeholder.pack(pady=(0, 10))
-            placeholder.bind("<Button-1>", callback)
+            if livro_eh_lido:
+                placeholder.bind("<Button-1>", callback_anotacoes)
         
-        if label_img:
-            label_img.bind("<Button-1>", callback)
+        if label_img and livro_eh_lido:
+            label_img.bind("<Button-1>", callback_anotacoes)
             
         label_titulo = ttk.Label(card, text=livro.get_titulo(), style='Card.TLabel', font=STYLE_CONFIG["FONT_CARD_TITLE"], wraplength=180, justify='center')
         label_titulo.pack(fill='x', pady=5, expand=True)
-        label_titulo.bind("<Button-1>", callback)
+        if livro_eh_lido:
+            label_titulo.bind("<Button-1>", callback_anotacoes)
 
         label_autor = ttk.Label(card, text=livro.get_autor().get_nome(), style='Card.TLabel', font=STYLE_CONFIG["FONT_NORMAL"], justify='center')
-        label_autor.pack(fill='x', pady=(0, 15), expand=True)
-        label_autor.bind("<Button-1>", callback)
+        label_autor.pack(fill='x', pady=(0, 5), expand=True)
+        if livro_eh_lido:
+            label_autor.bind("<Button-1>", callback_anotacoes)
+
+        avaliacao = self.controller.get_avaliacao_por_livro(livro.get_id())
+        if avaliacao:
+            frame_avaliacao = ttk.Frame(card, style='Card.TFrame')
+            frame_avaliacao.pack(fill='x', pady=(0, 10))
+            if livro_eh_lido:
+                self._criar_estrelas(frame_avaliacao, avaliacao.get_nota(), callback_anotacoes)
+            else:
+                self._criar_estrelas(frame_avaliacao, avaliacao.get_nota(), None)
 
         status_var = tk.StringVar()
         menu_status = ttk.Combobox(card, textvariable=status_var, values=STATUS_OPCOES, state="readonly", style="Card.TCombobox")
@@ -122,6 +159,15 @@ class EstantePage(BasePage):
 
         menu_status.pack(fill='x', side='bottom')
         menu_status.bind("<<ComboboxSelected>>", lambda event, b_id=livro.get_id(), var=status_var: self.mudar_status(b_id, var.get()))
+
+    def _criar_estrelas(self, parent, nota, callback):
+        """ Cria a visualização de estrelas para a avaliação. """
+        estrelas_unicode = "★" * int(nota) + "☆" * (5 - int(nota))
+        label_estrelas = ttk.Label(parent, text=estrelas_unicode, style='Card.TLabel', 
+                                   font=("Georgia", 12), justify='center', foreground="#FFD700")
+        label_estrelas.pack()
+        if callback:
+            label_estrelas.bind("<Button-1>", callback)
 
     def on_canvas_resize(self, event):
         """ Ajusta o layout dos cards quando a tela é redimensionada. """

@@ -6,6 +6,8 @@ AUTORES_JSON_PATH = os.path.join(DATA_DIR, 'autores.json')
 GENEROS_JSON_PATH = os.path.join(DATA_DIR, 'generos.json')
 STATUS_JSON_PATH = os.path.join(DATA_DIR, 'status.json')
 STATS_JSON_PATH = os.path.join(DATA_DIR, 'stats.json')
+ANOTACOES_JSON_PATH = os.path.join(DATA_DIR, 'anotacoes.json')
+AVALIACOES_JSON_PATH = os.path.join(DATA_DIR, 'avaliacoes.json')
 IMAGES_DIR = 'images'
 
 STATUS_MAP = {
