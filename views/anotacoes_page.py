@@ -26,11 +26,27 @@ class AnotacoesPage(BasePage):
         self._limpar_formulario()
         self._atualizar_lista_anotacoes()
         self._atualizar_avaliacao_display()
+        self._atualizar_recomendacoes()
 
     def _create_widgets(self):
         """ Cria os widgets da página de anotações. """
-        main_frame = ttk.Frame(self, padding=(20, 20))
-        main_frame.pack(fill='both', expand=True)
+
+        container = ttk.Frame(self)
+        container.pack(fill='both', expand=True)
+        
+        canvas = tk.Canvas(container, bg=STYLE_CONFIG["BG_COLOR"], highlightthickness=0)
+        scrollbar_v = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        
+        main_frame = ttk.Frame(canvas, padding=(20, 20))
+        main_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        
+        canvas.create_window((0, 0), window=main_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar_v.set)
+        
+        canvas.bind_all("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar_v.pack(side="right", fill="y")
         
         header_frame = ttk.Frame(main_frame)
         header_frame.pack(fill='x', pady=(0, 20))
@@ -81,6 +97,7 @@ class AnotacoesPage(BasePage):
         content_frame.pack(fill='both', expand=True)
         content_frame.grid_columnconfigure(0, weight=2)
         content_frame.grid_columnconfigure(1, weight=3)
+        content_frame.grid_rowconfigure(0, weight=1)
         
         left_column = ttk.Frame(content_frame)
         left_column.grid(row=0, column=0, sticky='nsew', padx=(0, 10))
@@ -88,7 +105,7 @@ class AnotacoesPage(BasePage):
         left_column.grid_columnconfigure(0, weight=1)
         
         lista_frame = ttk.LabelFrame(left_column, text="Minhas Anotações", padding=10)
-        lista_frame.grid(row=0, column=0, sticky='nsew', pady=(0, 10))
+        lista_frame.grid(row=0, column=0, sticky='nsew')
         lista_frame.grid_rowconfigure(0, weight=1)
         lista_frame.grid_columnconfigure(0, weight=1)
         
@@ -103,10 +120,6 @@ class AnotacoesPage(BasePage):
         
         self.listbox_anotacoes.bind('<<ListboxSelect>>', self._on_selecionar_anotacao)
         self.listbox_anotacoes.bind('<Configure>', self._ajustar_preview_anotacoes)
-        
-        btn_voltar = ttk.Button(left_column, text="Voltar", 
-                               command=self._voltar_para_estante)
-        btn_voltar.grid(row=1, column=0, sticky='w')
         
         form_frame = ttk.LabelFrame(content_frame, text="Adicionar/Editar Anotação", padding=10)
         form_frame.grid(row=0, column=1, sticky='nsew')
@@ -130,6 +143,16 @@ class AnotacoesPage(BasePage):
         btn_excluir = ttk.Button(botoes_frame, text="Excluir", 
                                 command=self._excluir_anotacao, style="Delete.TButton")
         btn_excluir.pack(side='right')
+        
+        recomendacoes_label = ttk.Label(main_frame, text="Recomendações", font=STYLE_CONFIG["FONT_HEADING"])
+        recomendacoes_label.pack(anchor='w', pady=(20, 5))
+        
+        self.frame_recomendacoes = ttk.Frame(main_frame, padding=(0, 0, 0, 10))
+        self.frame_recomendacoes.pack(fill='x', expand=False, pady=(0, 0))
+        
+        btn_voltar = ttk.Button(main_frame, text="Voltar", 
+                               command=self._voltar_para_estante)
+        btn_voltar.pack(anchor='e', pady=(20, 0))
 
     def _atualizar_lista_anotacoes(self):
         """ Atualiza a listbox com as anotações do livro. """
@@ -301,3 +324,73 @@ class AnotacoesPage(BasePage):
             self.avaliacao_var.set(0)
             self._atualizar_estrelas_display(0)
             messagebox.showinfo("Sucesso", "Avaliação removida com sucesso!")
+    
+    def _atualizar_recomendacoes(self):
+        """ Atualiza a lista de recomendações. """
+        for widget in self.frame_recomendacoes.winfo_children():
+            widget.destroy()
+        
+        recomendacoes = self.controller.get_recomendacoes(self.livro_id)
+        
+        if not recomendacoes:
+            label_vazio = ttk.Label(self.frame_recomendacoes, 
+                                   text="Nenhum livro recomendado encontrado",
+                                   font=STYLE_CONFIG["FONT_NORMAL"])
+            label_vazio.pack(pady=20)
+        else:
+            for i, livro in enumerate(recomendacoes):
+                self._criar_card_recomendacao(livro, i)
+    
+    def _criar_card_recomendacao(self, livro, posicao):
+        """ Cria um card pequeno para exibir uma recomendação. """
+        card = ttk.Frame(self.frame_recomendacoes, style='Card.TFrame', padding=10)
+        card.grid(row=0, column=posicao, padx=5, sticky="nsew")
+        
+        livro_eh_lido = livro.get_status() and livro.get_status().get_id() == 3
+        if livro_eh_lido:
+            callback = lambda event, l_id=livro.get_id(): self._abrir_livro_recomendado(l_id)
+            card.bind("<Button-1>", callback)
+            card.config(cursor="hand2")
+        
+        try:
+            caminho_img = os.path.join(IMAGES_DIR, os.path.basename(livro.get_caminho_imagem()))
+            img = Image.open(caminho_img).resize((80, 120), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            label_img = ttk.Label(card, image=photo, style='Card.TLabel')
+            label_img.image = photo
+            label_img.pack(pady=(0, 5))
+            if livro_eh_lido:
+                label_img.bind("<Button-1>", callback)
+        except Exception:
+            placeholder = tk.Canvas(card, width=80, height=120, bg="#cccccc", highlightthickness=0)
+            placeholder.create_text(40, 60, text="Capa\nIndisponível", 
+                                  fill="white", font=("Georgia", 8), justify="center")
+            placeholder.pack(pady=(0, 5))
+            if livro_eh_lido:
+                placeholder.bind("<Button-1>", callback)
+        
+        label_titulo = ttk.Label(card, text=livro.get_titulo(), 
+                                style='Card.TLabel', font=("Georgia", 9, "bold"), 
+                                wraplength=100, justify='center')
+        label_titulo.pack(fill='x', pady=2)
+        if livro_eh_lido:
+            label_titulo.bind("<Button-1>", callback)
+        
+        label_autor = ttk.Label(card, text=livro.get_autor().get_nome(), 
+                               style='Card.TLabel', font=("Georgia", 8), justify='center')
+        label_autor.pack(fill='x', pady=(0, 5))
+        if livro_eh_lido:
+            label_autor.bind("<Button-1>", callback)
+        
+        avaliacao = self.controller.get_avaliacao_por_livro(livro.get_id())
+        if avaliacao:
+            estrelas = "★" * int(avaliacao.get_nota()) + "☆" * (5 - int(avaliacao.get_nota()))
+            label_estrelas = ttk.Label(card, text=estrelas, style='Card.TLabel',
+                                      font=("Georgia", 8), foreground="#FFD700", justify='center')
+            label_estrelas.pack()
+            if livro_eh_lido:
+                label_estrelas.bind("<Button-1>", callback)
+    
+    def _abrir_livro_recomendado(self, livro_id):
+        """ Abre a página de anotações do livro recomendado. """
+        self.controller.show_anotacoes_page(livro_id)

@@ -134,3 +134,20 @@ class LivroController:
     def show_anotacoes_page(self, livro_id):
         """ Mostra a página de anotações para o livro especificado. """
         self.view.show_page("AnotacoesPage", livro_id)
+    
+    def get_recomendacoes(self, livro_id, max_recomendacoes=5):
+        """ Retorna livros recomendados com base no gênero do livro atual. """
+        livro_atual = self.get_livro_by_id(livro_id)
+        if not livro_atual:
+            return []
+        
+        genero_atual = livro_atual.get_genero()
+        todos_livros = self.models['livro'].get_all()
+        
+        recomendacoes = [
+            livro for livro in todos_livros 
+            if livro.get_genero() and livro.get_genero().get_id() == genero_atual.get_id() 
+            and livro.get_id() != livro_id
+        ]
+        
+        return recomendacoes[:max_recomendacoes]
